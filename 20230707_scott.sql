@@ -66,3 +66,197 @@ select ename, sal
     from emp
     where sal >= 1500 and sal < 2800
 ;
+--20번 부서를 제외한 ( !=, <> , ^= ) 사원 정보를 조회
+select *
+    from emp
+--        where deptno != 20
+--        where depno <> 20
+--        where deptno ^= 20
+--        where not deptno = 20
+          WHERE deptno not in (20, 10)  --20번부서와 10번부서를 제외한 나머지 부서를 나타내주세요
+;
+-- 10, 20,30 부서를 사원 정보를 조회
+select *
+    from emp
+--    where not (deptno = 10 OR deptno = 20 or deptno = 30)
+    where deptno in(10,20,30)
+;
+-- 10, 20 부서를 제외한 사원 정보를 조회
+select *
+    from emp
+--  where deptno !=10 and deptno !=20
+    where deptno not in(10,20,30)
+;
+--20번 부서를 제외한 사원 중 comm이 null인 사원 정보를 조회
+select *
+    from emp
+    where depno = 20 and comm  is not null
+-- 오류      comm != null    
+;
+
+--'s'로 시작하는 2글자이상의 이름을 가진 직원 이름과 급여 조회
+select ename, sal
+from emp
+where ename like 'S_%'
+;
+--이름중 3번쨰 글자가 'S'인 직원 이름과 급여 조회
+SELECT ename, sal
+from emp
+where ename like '___S%'
+;
+
+-- 이름중 3번쨰 글자가 '_'인 직원 이름과 급여 조회
+SELECT ename, sal
+from emp
+--이름이 4글자 이상인 직원
+--where ename like '___%'
+where ename like '___%' escape '/'
+    or job like '__@_%' escape '@'
+;
+-- 관리자도 없고 부서 배치도 받지 않은 직원 조회
+select *
+from emp
+where mgr is null
+    and deptno is null
+;
+--관리자가 없지만 보너스를 지급받는 직원 조회
+SELECT * from emp
+where mgr is null
+and comm is not null
+;
+--20 부서와 30 부서원들의 이름, 부서코드 급여조회
+SELECT ename,deptno, sal
+from emp 
+where deptno in ('20', '30')
+;
+-- analyst 또는 salesman 인 사원 중 급여를 2500보다 많이 받는 직원의 이름, 급여, 직급코드 조회
+SELECT ename, sal, job
+from emp
+where job in ('ANALYST', 'SALESMAN')
+ AND sal > 2500
+ ;
+ 
+ --사원명의 길이와 byte크기를조회
+ SELECT length(ename), lengthb(ename)
+ from emp
+ ;
+ 
+ --select 'a안 녕b', length('a안녕b'),lengthb('a안 녕b')
+ select trim('a안 녕b'), length(trim('a안녕b')),lengthb(trim('a안 녕b'))
+ --from emp
+ from dual
+ -- 테이블 dual은 임시테이블로 연산이나 간다한 함수 결과값을 조회할떄 사용함.
+ ;
+ --사원명의 시작부분 s와 끝나는 부분 s 모두 제거해주세요.
+ SELECT Rtrim(Ltrim(ename,'S'),'S')from emp;
+ --Ltrim 예시 010 제거
+ 
+ --Lpad / Rpad 채워넣기 
+ --ename이 총 10자가 되도록 left쪽에 'S'를 채워주세요.
+SELECT Lpad(ename,10,'S')from emp;
+  --ename 이 총 10자가 되도록 left 쪽에 ' '공백(default)를 채워주세요.
+select Lpad(ename, 10) from emp;
+ 
+ --문자열(컬럼) 이어붙이기 
+select concat(ename, comm) from emp;
+select ename ||comm from emp;
+select sal||'달러' from emp;
+select concat(sal, '달러') from emp;
+--substr 엄청중요!!!!!
+--replace
+select replace(ename, 'SM' ,'A' ) from emp;
+
+--2023.07.10
+select sysdate, to_char(sysdate, 'yyyy.mm.dd (dy) hh24:mi:ss') from dual;
+select sysdate, to_char(sysdate, 'yyyy.mm.dd (dy) hh24:mi:ss') from dual;
+
+alter session set NLS_DATE_FORMAT = 'yyyy-mm-dd hh24:mi:ss';
+SELECT sysdate from dual;
+select * from emp;
+
+-- year 2023 month 09 day 11 hour 13
+select to_date('2023091113', 'yyyymmddhh24') from dual;
+select add_months(to_date('2023091113', 'yyyymmddhh24'),5) from dual;
+select next_day(to_date('2023091113', 'yyyymmddhh24'),'일') from dual;
+-- 1:일요일 2 월요일, 3 화요일....
+SELECT last_day('2023091113') from dual;  --이건 안되는 코드임. 오라클xe 라서 실행 되는것.
+
+select to_char(empno,'000000'), trim(to_char(sal, '999,999,999,999'))
+from emp;
+
+select to_number('123,4567,8901', '999,9999,9999')*4 from dual;
+
+-- 직원들의 평균 급여는 얼마인지 조회
+SELECT avg(sal) 평균급여 from emp;
+SELECT sum(sal) sum from emp;
+SELECT max(sal) max from emp;
+SELECT min(sal) min from emp;
+SELECT min(sal) count from emp;
+
+--부서별 평균급여 조회
+SELECT avg(sal) 평균급여, deptno from emp group by deptno;
+SELECT sum(sal) 평균급여, deptno from emp group by deptno;
+SELECT max(sal) 평균급여, deptno from emp group by deptno;
+SELECT min(sal) 평균급여, deptno from emp group by deptno;
+SELECT count(sal) 평균급여, deptno from emp group by deptno;
+
+--job별 평균 급여 조회
+SELECT avg(sal) 평균급여,job from emp group by job;
+SELECT sum(sal) sum,job from emp group by job;
+SELECT max(sal) max,job from emp group by job;
+SELECT min(sal) min,job from emp group by job;
+SELECT min(sal) count,job from emp group by job;
+
+--job이 analyst인 직원의 평균 급여 조회
+select avg(sal) 평균급여, job
+    from emp
+    group by job
+    having job = 'ANALYST'
+;
+
+select avg(sal) 평균급여, job
+    --오류 , job
+    from emp
+    where job = 'ANALYST'
+;
+
+--job이 analyst인 부서별 직원의 평균 급여 조회
+--job이 analyst 인 부서별 직원
+select job, deptno
+    from emp
+    where job='CLERK'
+;
+--JOB이 CLERK 인 부서별 직원의 평균 급여조회
+select job, deptno, AVG(SAL)
+    from emp
+    where job='CLERK'
+    GROUP BY DEPTNO, JOB
+;
+
+select ename, sal*12+nvl(comm,0) salcomm
+    from emp
+    order by 2 desc, 1 desc
+;
+-- job 오름차순
+select * from emp
+ --   order by job;
+    order by 3;
+    
+-- EMPLOYEE에서 부서코드, 그룹 별 급여의 합계, 그룹 별 급여의 평균(정수처리), 인원 수를 조회하고 부서 코드 순으로 정렬
+
+-- EMPLOYEE테이블에서 부서코드와 보너스 받는 사원 수 조회하고 부서코드 순으로 정렬
+
+-- EMPLOYEE테이블에서 성별과 성별 별 급여 평균(정수처리), 급여 합계, 인원 수 조회하고 인원수로 내림차순 정렬
+
+--사원명, 부서번호, 부서명, 부서위치를 조회
+select * from dept;
+select * from emp;
+select * 
+    from emp
+    join dept on emp.deptno = dept.deptno
+;
+select  ename, emp.deptno, dname,loc
+    from emp
+    join dept on emp.deptno = dept.deptno
+;
+select * from emp join dept using (deptno);
