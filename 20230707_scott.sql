@@ -260,3 +260,124 @@ select  ename, emp.deptno, dname,loc
     join dept on emp.deptno = dept.deptno
 ;
 select * from emp join dept using (deptno);
+
+--부서위치가 dallas인 사원명,부서번호,부서명, 위치를 조회
+select ename, dept.deptno, dname, loc
+from emp, dept
+where emp.deptno = dept.deptno
+and loc = 'DALLAS'
+;
+
+select empno, loc
+from emp cross join dept;
+
+select * from emp;
+select * from salgrade;
+--사원의 이름, 사번, sal, grade를 조회
+select e.ename,e.empno,e.sal,s.grade
+from emp e
+    join salgrade s on e.sal between s.losal and s.hisal
+    order by s.grade desc, e.sal
+;
+
+select empno, ename, mgr from emp;
+--같은 이름 컬러명이 나타나지 않도록 별칭 사용
+select e.empno boss, e.ename, m.empno emp, m.ename emps
+    from emp e join emp m
+    on e.empno = m.mgr
+;
+select ename from emp where empno=7566
+;
+select * from emp;
+
+--자료형
+CREATE table t1 ( c1 char(5), c2 varchar2(5));
+insert into t1 values('12345','12345');
+commit;
+select * from t1;
+select length(c1), length(c2) from t1;
+
+desc t1;
+desc emp;
+
+--ERD(entisy relationship diagram
+-- UML - classDiagram, ERD
+
+--인라인뷰 (inline-view)
+--오류
+select rownum, e.* from emp e where deptno in (20,30)
+order by hiredate asc
+;
+--해결 방법
+select rownum, e.* from (select * from emp order by ename asc)e 
+where deptno in (20,30)
+;
+
+-- 1page 1-3
+select rownum, e.*
+    from( select * from emp where deptno in (20,30) order by ename asc) e
+    where rownum between 1 and 3
+;
+-- 2page 4-6
+select rownum rnum, e.*
+    from( select * from emp where deptno in (20,30) order by ename asc) e
+    where rownum between 4 and 6
+--    rnum은 select -6수행순서로 where 절에서 사용할수 없음
+;
+-- 3page 7-9
+select *
+    from (select rownum rnum, e.* 
+    from (select * from emp where deptno in (20,30) order by ename asc) e
+    )
+    where rnum between 7 and 9
+    
+    
+    with abc (select rownum rnum, e.*
+    from (select * from emp where deptno in (20,30) order by ename asc)e)
+   select *
+   from abc
+    where rnum between 7 and 9
+    ;
+    
+    create view view_abc
+    as
+    select rownum rnum, e.*
+    from (select * from emp where deptno in (20,30) order by ename asc)e
+    ;
+    select * from view_abc;
+    where rnum between 7 and 9
+    --abc 가 마치 새로우 테이블 것처럼 사용 가능
+    
+    --20230712
+    -- 03-11. grade별로 평균 급여에 10프로내외의 급여를 받는 사원명을 조회-정렬
+    select s.grade, e.ename
+        from emp e join salgrade s
+            on e.sal between s.losal and s.hisal
+        where e.sal > 
+        --다중 행 결과물과 >=비교안됨.(950, 1266, 1550, 2879, 5000)
+        (
+        select avg(sal) 
+            from emp e2 join salgrade s2
+            on e2.sal between s2.losal and s2.hisal
+            where s2.grade = s.grade
+            --group by s.grade having s2.frade =4
+            )*1.1
+;
+--with 사용
+with abc2( avg(sal) 
+            from emp e2 join salgrade s2
+            on e2.sal between s2.losal and s2.hisal
+            where s2.grade = s.grade
+            )
+as
+select s.grade, e.enme, e.sal
+            from emp e2 join salgrade s
+            on e.sal between s.losal and s.hisal
+            where s.grade > abc2.avg(sal)
+            ;
+
+select avg(sal), s.grade
+    from emp e join salgrade s
+    on e.sal between s.losal and s.hisal
+    group by s.grade
+    ;

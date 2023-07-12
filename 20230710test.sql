@@ -234,3 +234,25 @@ from employee;
 select sum(salary),
 from EMPLOYEE
 where substr(emp_no,8,1)=1;
+
+--부서 코드와 급여 평균이 3000000 이상인 그룹조회
+select dept_code, avg(salary)
+from employee
+group by dept_code
+having avg(salary)> 3000000;
+
+--다중 join
+--하나 이상의 테이블에서 데이터를 조회하기 위해 사용하고 수행 하나의 result set으로 나옴
+SELECT EMP_ID, EMP_NAME, DEPT_CODE, DEPT_TITLE, LOCAL_NAME
+FROM EMPLOYEE 
+JOIN DEPARTMENT ON (DEPT_CODE = DEPT_ID)
+JOIN LOCATION ON (LOCATION_ID = LOCAL_CODE);
+--* 에러, 다중 조인의 경우 조인 순서 매우 중요
+SELECT EMP_ID, EMP_NAME, DEPT_CODE, 
+DEPT_TITLE, LOCAL_NAME
+FROM EMPLOYEE
+JOIN LOCATION ON (LOCATION_ID = LOCAL_CODE)
+JOIN DEPARTMENT ON (DEPT_CODE = DEPT_ID);
+
+--self join
+--두개 이상의 서로 다른 테이블을 연결 하는것이 아닌 같은 테이블을 조인하는것

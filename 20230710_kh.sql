@@ -156,3 +156,81 @@ from employee where dept_code is null;
 
 SELECT DEPT_CODE from employee;
 select distict FROM EMPLOYEE; 
+
+-- 사원명 , 부서번호 부서명 부서위치를 조회
+
+select tb1.emp_name, tb1.dept_code, tb2.dept_title, tb2.location_id, nationcal_code, tb4.national_name
+from employee tb1
+join department tb2 on tb1.dept_code = tb2.dept_id
+join location tb3 on department.location_id = tb3.local_code
+join national tb4 using(national_code)
+; --오류남
+
+select *
+from employee e
+left outer join department d on e.dept_code=d.dept_id
+;
+
+select *
+from employee e
+full outer join department d on e.dept_code=d.dept_id
+;
+
+select *
+from employee e , department d
+where e.dept_code(+)=d.dept_id;
+
+--SUBQUERY  
+SELECT emp_id,emp_name, job_code,salary
+from employee
+where salary >=(select avg(salary) from employee);
+
+--전 직원의 급여 평균 보다 많은 급여를 받는 직원의 이름,직금,부서, 급여조회
+--단일행 서브쿼리
+SELECT EMP_NAME,JOB_CODE,DEPT_CODE,SALARY
+FROM EMPLOYEE E
+WHERE SALARY >= (SELECT AVG(SALARY) FROM EMPLOYEE)
+ORDER BY 2;
+
+--부서별 최고 급여를 받는 직원의 이름, 직급, 부서, 급여 조회
+-- 다중행 서브쿼리
+select emp_name, job_code, dept_code, salary
+from employee
+where salary in(select max(salary) from employee group by dept_code);
+
+--퇴사한 여직원과 같은 부서 , 같은 직급에 해당하는 사원의 이름, 직급, 부서,입사일조회
+--다중 열 서브 쿼리
+select emp_name, job_code, dept_code, hire_date
+from employee
+where(dept_code, job_code)in(select dept_code, job_code from employee
+where substr(emp_no,8,1)=2and ent_yn='Y');
+
+
+--직급별 최소 급여를 받는 직원의 사번, 이름 , 직급,급여 조회
+--다중행 다중 열 서브쿼리
+select emp_id,emp_name, job_code,salary
+from employee
+where(job_code,salary)in(select job_code, min(salary)
+from employee group by job_code)
+order by 3;
+
+--with
+--서브쿼리에 이름을 붙여주고 인라인 뷰로 사용시 서브쿼리의 이름으로
+--from절에 기술 가능
+--같은 서브쿼리가 여러번 사용될 경우 중복 작성을 피할 수 있고 실행속도도 빨라진다는 장점이있음
+with topn_sal as(select emp_name,salary from employee order by salary desc)
+select rownum, emp_name, salary
+from topn_sal;
+
+--rank() over
+
+select 순위,emp_name, salary
+from(select emp_name, salary, rank() over(order by salary desc)as 순위
+from employee
+order by salary desc);
+
+--dense_rack()over
+select 순위, emp_name, salary
+from(select emp_name, salary, dense_rack() over(order by salary desc)as 순위
+from employee
+order by salary desc);
