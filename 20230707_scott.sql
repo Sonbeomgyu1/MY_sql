@@ -363,21 +363,110 @@ select *
             --group by s.grade having s2.frade =4
             )*1.1
 ;
+--select에서 rownum 별칭
+--select에서 함수 사용한 경우 반드시 별칭
 --with 사용
-with abc2( avg(sal) 
+with abc2 as( select avg(sal) avgsal 
             from emp e2 join salgrade s2
             on e2.sal between s2.losal and s2.hisal
             where s2.grade = s.grade
             )
-as
 select s.grade, e.enme, e.sal
             from emp e2 join salgrade s
             on e.sal between s.losal and s.hisal
-            where s.grade > abc2.avg(sal)
+            where e.sal > abc2.avgsal*0.9 and e.sal < abc2.avgsal*1.1
             ;
+            ----------------------------
+with abc3 as(select s.grade, e.enme, e.sal
+            from emp e join salgrade s
+            on e.sal between s.losal and s.hisal)
+            
+select *
+from abc3 t1
+where sal between (select avg(t2.sal) from abc3 t2 where t2.frade=t1.grade)*
+and (select avf(t2.sal) from abc3 t2 where t2.frade = t1.frade)*1.1
+;
+Creat or replace view view_emp_salfrade
+(select e.empno, e.ename, job, mgr, hiredate, sal, comm, deptno, grade, losal, hisal
+from emp e join salfrade s
+on e.sal between s.losal and s.hisal
+;
 
 select avg(sal), s.grade
     from emp e join salgrade s
     on e.sal between s.losal and s.hisal
     group by s.grade
     ;
+    
+-- from 절 subquery
+
+--group by 사용시
+-- select 컬럼명으로는 group by에 사용된 컬럼명 작성가능. 그리고 그룹함수 사용가능.
+        select avg(e2.sal)*0.9 minsal, avg(e2.sal)*1.1 maxsal,avg(e2.sal) avgsal, s2.grade 
+            from emp e2 join salgrade s2 on e2.sal between s2.losal and s2.hisal
+            group by s2.grade ;
+
+--실습 3-12            
+--지역 재난 지원금을 사원들에게 추가지급
+--조건 :
+--1. NEW YORK지역은 SAL의 2%, DALLAS지역은 SAL 5%, CHICAGO지역은 SAL의 3%,BOSTON지역은 SAL 7%
+--2.추가지원금이 많은 사람 순으로 정렬
+
+SELECT empno,ename, sal, loc,
+--    decode(loc, 'NEW YORK, sal*0.02,'DALLAS',sal*0.05,'CHICAGO',sal*0.03,'BOSTON',sal*0.07,0)
+    case loc
+        when 'NEW YORK' then sal*0.02
+        when 'DALLAS' then sal*0.05
+        when 'CHICAGO' then sal*0.03
+        when 'BOSTON' then sal*0.07
+    end
+    as sal_sunsidy
+    from emp e
+        join dept d using(deptno)
+--    where
+--    group by
+--   having
+    order by sal_sunsidy
+;
+
+--salesman들의 급여와 같은 급여를 받는 사원을조회
+select empno, ename, sal
+    from emp
+    where sal >any(select sal from emp where job='SALESMAN')
+    ;
+select ename,sal from emp where job='SALESMAN';
+
+--관리자로 등록되어 있는 사원들을 조회
+select empno, ename
+    from emp e
+    where exists (select empno from emp e2 where e2.empno = e.mgr)
+;
+select * from emp;
+
+select distinct e.empno, e.ename
+    from emp e join emp e2
+        on e.empno = e2.mgr 
+;
+--join 대비 상관쿼리 사용시 속도 향상
+
+-- 부서 번호가 30인 사원들의 급여와 부서번호를 묶어 메인 쿼리로 전달해보자.
+select *
+    from emp
+    where (deptno, sal) in (select deptno, sal from emp where deptno=30)
+;
+
+--부서별 평균급여와 직원들 정보를 조회해주세요.
+select e.*,
+    --스칼라서브쿼리 작성되어야함.
+    (select trunc(avg(sal)) from emp e2 where e2.deptno=e.deptno)
+    from emp e
+;
+
+-- 직우너 정보와 부서번호, 부서명, 부서위치
+select ename, deptno, dname, loc
+    from emp join dept using(deptno);
+    
+select ename, deptno,
+    (select dname from dept d where d.deptno=e.deptno) dname
+    ,(select loc from dept d where d.deptno=e.deptno) loc
+    from emp e;

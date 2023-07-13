@@ -234,3 +234,10 @@ select 순위, emp_name, salary
 from(select emp_name, salary, dense_rack() over(order by salary desc)as 순위
 from employee
 order by salary desc);
+
+--20230712
+-- 16.employee테이블에서 사원명, 주민번호 조회( 단, 주민번호는 생년월일만 보이게하고, '-'다음 값은 '*'로 바꾸기)
+select emp_id, emp_no,  substr(emp_no,1,7), rpad(substr(emp_no,1,7),14,'*')
+from employee
+;
+
