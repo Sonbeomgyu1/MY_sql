@@ -470,3 +470,194 @@ select ename, deptno,
     (select dname from dept d where d.deptno=e.deptno) dname
     ,(select loc from dept d where d.deptno=e.deptno) loc
     from emp e;
+    
+--20230713
+select * from emp;
+create table emp_copy1 as select * from emp;
+select * from emp_copy1;
+create view view_emp1 as select * from emp;
+select * from view_emp1;
+desc emp;
+insert into emp values(8000,'EJKIM','KH',7788,sysdate,3000,700,40);
+commit;
+insert into emp_copy1 values(8001,'EJ1','KH',7788,sysdate,3000,700,40);
+commit;
+insert into view_emp1 values(8002,'EJ2','KH',7788,sysdate,3000,700,40);
+commit;
+create table emp_copy20 as 
+select empno, ename 사원명, job, hiredate, sal , deptno 
+from emp
+ where deptno=20
+;
+desc emp;
+desc emp_copy20;
+select * from uesr_constraints;
+
+insert into emp (ename, empno, job, mgr, hiredate, deptno)
+    values('EJK', 8003, 'T', 7788, SYSDATE,40);
+SELECT * FROM EMP;
+insert into emp (ename, empno, job, mgr, hiredate, deptno)
+    values('EJK2', 8004, 'P', NULL, TO_DATE('2023-07-12','YYYY-MM-DD'),40);
+COMMIT;
+UPDATE EMP 
+    SET MGR=7788
+    WHERE ename='EJK2'
+--UPDATE 명령문의 WHERE절에는 컬러명PK=값
+--WHERE절에는 컬러명PK=값 -->RESULTSET은 단일행
+;
+--20번 부서의 mgr가 smith 7908 로 조직개편
+update emp
+    set mgr=7908
+    where deptno=20
+; -- 결과 5
+update emp
+    set mgr=7908
+    where deptno=70
+; -- 결과 0
+rollback;
+SELECT * FROM EMP;
+--30번 부서의 MGR가 SMITH 7908로 조직개편
+UPDATE EMP
+    SET MGR=7908
+        WHERE DEPTNO=30
+; --
+
+create view view_emp10
+    as select max(sal) maxsal,job from emp group by job;
+    
+select * from 
+
+--select * from view_abc;
+    
+--insert into view view_emp10 
+
+--t2 테이블이 없음에도 view생성
+create or replace force view view_t2
+    as select * from t2;
+create or replace force view view_t2
+    as select * from empno t2;
+    
+    
+create or replace view view_emp_checkoption
+    as
+    select * from emp
+    where deptno =30
+    with check option   
+;
+select * from view_emp_checkoption;
+
+update view_emp_checkoption set deptno=20 where empno=7499;
+update view_emp_checkoption set comm=350 where empno=7499;
+update emp set deptno=20 where empno=7499;
+
+create sequence seq_t1;
+select seq_t1.currval from dual;
+
+select seq_t1.nextval from dual;
+select seq_t1.currval from dual;
+--sequence의 nextval 은 unique한 값에 insert시에 활용됨.
+--sequence 이름을 지을떄 SEQ_테이블명_컬럼명
+--예를 들어 EMP테이블에 EMPNO에 적용 - SEQ_EMP-EMPNO
+-- INSERT INTO EMP VALURES ( SEQ_EMP_EMPNO.nextval, '홍길동',.....);
+select * from user_sequences;
+select * from user_indexes;
+select * from user_constraints;
+select * from user_cons_columns;
+
+create index idx_emp_sal on emp(sal);
+create index idx_emp sal on emp(sal*12);
+create index idx_emp sal on emp(sal*comm);
+
+
+--분석함수 종류
+--A.순위함수 : RANK(), DENSE_RANK(), ROW_NUMBER(), NTILE()
+--B.집계함수 = 그룹 함수 :  COUNT () , SUM(), AVG(), MIN(), MAX()
+--C.그룹함수 = GROUP BY : ROLLUP()+GROUPING (), CUBE()+GROUPING (), GROUPING SET 참고 "3 GROUP BY HAVING.PDF"
+--D. 1 : CUME_DIST (), RATIO_TO_REPORT()
+--E.///LAG(), ///LEAD()
+--F. FIRST_VALUE (), LAST_VALUE()
+--
+--"위 C 제외한 
+--분석 함수의 윈도우-범위(영역)정하기"
+--A.B.D.E.F 분석함수
+--OVER () ==> window - 윈도우절
+--OVER()
+--OVER (PARTITION BY 컬1)
+--OVER (ORDER BY 컬1 DESC, 컬2 ASC, 컬3 DESC)
+--OVER (PARTITION BY 컬1 ORDER BY 컬2 ASC, 컬3 DESC)
+--OVER (PARTITION BY 컬1 RIWS 아래 참고 )
+--OVER (PARTITION BY 컬1 ROWS~)
+--OVER (PARTITION BY 컬1 ROWS BETWEEN ~ AND ~)
+--UNBOUND PRECEDING
+--UNBOUND FOLLOWING
+--CURRENT ROW
+--2 PRECEDING
+--1 FOLLOWINGㄴ
+--OVER ( PARTITION BY 컬 1 DESC, 컬2, 컬3 ROWS BETWEEN ~ AND~)
+
+--window - over(partition by..) : 기존 griup by 단점 개선
+select deptno, empno,ename, sal, sum(sal) over(partition by deptno) sumsal
+from emp;
+
+--window - over (order by...) : 기존 rownum 대비 간결
+select deptno, empno, ename, sal
+, rank() over(order by sal asc) ranksal
+, dense_rank() over(order by sal asc) dranksal
+, row_number() over(order by sal asc) rnsal
+,rank() over (partition by deptno order by sal asc)dept_sal_rank
+from emp
+order by deptno;
+
+select dense_rank(2450) within group (order by sal asc) clarksal
+from emp;
+
+--rownum
+select deptno, empno, ename, sal
+, rn ranksal
+from(select rownum rn, t1.* from (select deptno, empno,ename,sal from emp order by sal asc)t1);
+
+--부서코드가 '30'인 직원의 이름, 급여 , 급여에대한누적분산 을 조회
+-- 1: 누적분산 cume_dist(), 비율 ratio_to_report()
+select ename,sal,cume_dist() over (order by sal) sal_cume_dist
+from emp
+where deptno = '30';
+
+select ename,deptno,sal
+,trunc(cume_dist() over (order by sal),2) sal_cume_dist
+,trunc(ratio_to_report(sal) over(),2) sal_ratio
+,trunc(cume_dist() over(partition by deptno order by sal),2)sal_cume_dist
+,trunc(ratio_to_report(sal) over (partition by deptno),2)sal_ratio
+from emp
+order by deptno;
+
+검색조건
+
+DEPT_CODE가 D9이거나 D6이고 SALARY이 300만원 이상이고 BONUS가 있고
+
+남자이고 이메일주소가 _ 앞에 3글자 있는
+
+사원의 EMP_NAME, EMP_NO, DEPT_CODE, SALARY를 조회
+
+
+
+--작성된 쿼리구문
+--
+--SELECT EMP_NAME, EMP_NO, DEPT_CODE, SALARY
+--
+--FROM EMPLOYEE
+--
+--WHERE DEPT_CODE='D9' OR DEPT_CODE='D6' AND SALARY > 3000000
+--
+--AND EMAIL LIKE '____%' AND BONUS IS NULL;
+--
+--* 5개의 문제점이 있음
+
+select emp_name, emp_no, dept_code, salary
+from employee
+where (dept_code='D9' or dept_code='D6') abd salary >=30000000
+and email like '___#_%' escape '*' and bonus is not null and
+substr(dept_no,8,1)=1;
+
+select * from
+employee
+where bonus is null and manager_id is not null;

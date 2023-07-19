@@ -27,3 +27,10 @@ grant connect, resource to scott, kh;
 -- 21g xe 버젼 , dba 추가
 grant connect, resource, dba to scott, kh;
 grant connect, resource, dba to sjk62;
+
+
+create public synonym dept_public for KH.DEPT;s
+create public synonym dept2_public for KH.DEPARTMENT;
+select * from dept_public;
+alter session set "_ORACLE_SCRIPT"=true;
+DROP USER KH cascade;

@@ -1,3 +1,7 @@
+--EMP-FK-DEPT-PK
+--drop 순서는 create 순서 반대
+--fk 인 테이블을 먼저 drop
+
 Rem Copyright (c) 1990 by Oracle Corporation
 Rem NAME
 REM    UTLSAMPL.SQL
